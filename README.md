@@ -17,6 +17,8 @@ To run this app, clone the repo and run,
 `# or`  
 `npm start`
 
+Open the app on `localhost:5000`
+
 NB: Make sure you have MySQL database running
 
 Dependencies used are  
