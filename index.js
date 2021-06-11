@@ -57,7 +57,7 @@ app.get("/create_candidates_table", (req, res) => {
 // run this route only once
 app.get("/create_scores_table", (req, res) => {
   let sql =
-    "create table scores(id int auto_increment Primary key not null, candidate_id not null, first_round int, second_round int, third_round int)"
+    "create table scores(id int auto_increment Primary key not null, candidate_id int not null, first_round int, second_round int, third_round int, FOREIGN KEY (candidate_id) REFERENCES candidates(id))"
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
