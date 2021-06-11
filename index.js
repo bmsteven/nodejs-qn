@@ -1,5 +1,4 @@
 const express = require("express")
-const path = require("path")
 const mysql = require("mysql2")
 // const bodyParser = require("body-parser")
 
@@ -10,7 +9,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "score_system", // uncomment after creating database
+  // database: "score_system", // uncomment after creating database
 })
 
 db.connect((err) => {
