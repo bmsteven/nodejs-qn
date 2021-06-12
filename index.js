@@ -9,7 +9,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "score_system", // uncomment after creating database
+  // database: "score_system", // uncomment after creating database
 })
 
 db.connect((err) => {
