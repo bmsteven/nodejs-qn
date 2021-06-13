@@ -197,12 +197,35 @@ app.get("/api/get-max-scores", (req, res) => {
 })
 
 // get all scores
-app.get("/api/get-scores", (req, res) => {
-  let sql = `select * from scores  inner join candidates on candidates.id=scores.candidate_id`
+app.get("/api/get-scores?:pageSizepage", (req, res) => {
+  let pageSize
+  let page
+  let pageCount
+  let total = 0
+  page = parseInt(req.query?.page ? req.query.page : 1)
+  pageSize = parseInt(req.query?.pageSize ? req.query.pageSize : 3)
+  let counter = `SELECT count(*) as count from scores`
+  let sql = `select * from scores  inner join candidates on candidates.id=scores.candidate_id limit ${
+    page === 1 ? 0 : (page - 1) * pageSize
+  },${pageSize}`
   try {
-    db.query(sql, (err, data) => {
+    db.query(counter, (err, results) => {
       if (err) console.log(err)
-      res.send(data)
+      total = results[0].count
+      pageCount = Math.ceil(total / pageSize)
+      db.query(sql, (err, data) => {
+        if (err) console.log(err)
+        res.send({
+          data,
+          pager: {
+            pageSize,
+            page,
+            nextPage: `/api/get-scores?page=${parseInt(page) + 1}`,
+            pageCount,
+            total,
+          },
+        })
+      })
     })
   } catch (err) {
     console.log(err)
