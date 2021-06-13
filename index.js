@@ -42,7 +42,20 @@ app.get("/create_db", (req, res) => {
 // run this route only once to create candidates table
 app.get("/create_candidates_table", (req, res) => {
   let sql =
-    "create table candidates(id int auto_increment Primary key not null, first_name varchar(36) not null, last_name varchar(36))"
+    "create table candidates(id int auto_increment Primary key not null, name varchar(36) not null, email varchar(100) not null)"
+  try {
+    db.query(sql, (err, results) => {
+      if (err) console.log(err)
+      res.send(results)
+    })
+  } catch (err) {
+    console.log(err)
+  }
+})
+
+// updates candidates table
+app.get("/update-candidates-table", (req, res) => {
+  let sql = `alter table candidates add column name varchar(36) not null, add column email varchar(100) not null, drop column first_name, drop column last_name`
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
@@ -81,15 +94,15 @@ app.get("/update_score_table", (req, res) => {
 })
 
 app.post("/api/add-candidate", (req, res) => {
-  let { first_name, last_name } = req.body
+  let { name, email } = req.body
   let error = {}
-  let sql = `INSERT into candidates values (uuid(), '${first_name}', '${last_name}')`
+  let sql = `INSERT into candidates values (uuid(), '${name}', '${email}')`
 
   try {
-    if (first_name.trim().length === 0)
-      error.first_name = "Please add candidate's first name"
-    if (last_name.trim().length === 0)
-      error.last_name = "Please add candidate's last name"
+    if (name.trim().length === 0)
+      error.name = "Please add candidate's first name"
+    if (email.trim().length === 0)
+      error.email = "Please add candidate's last name"
     if (Object.keys(error).length > 0) {
       res.send(error)
     } else {
@@ -108,6 +121,23 @@ app.post("/api/add-candidate", (req, res) => {
   } catch (err) {
     console.log(err)
     error.err = err
+  }
+})
+
+// api to update candidate details
+app.post("/api/update-candidate/:userId", (req, res) => {
+  let { name, email } = req.body
+  let id = req.params.userId
+  let sql = `update candidates set name = '${name}', email = '${email}' where id = '${id}'`
+  try {
+    db.query(sql, (err, data) => {
+      if (err) throw err
+      res.send({
+        msg: "candidate updated successful",
+      })
+    })
+  } catch (err) {
+    console.log(err)
   }
 })
 
@@ -196,7 +226,8 @@ app.get("/api/get-max-scores", (req, res) => {
   }
 })
 
-// get all scores
+// get all scores add pageSize for number of items to fetch and page for page number like this
+// /api/get-scores?pageSize=12&page=2
 app.get("/api/get-scores?:pageSizepage", (req, res) => {
   let pageSize
   let page
