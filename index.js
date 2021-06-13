@@ -9,7 +9,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  // database: "score_system", // uncomment after creating database
+  database: "score_system", // uncomment after creating database
 })
 
 db.connect((err) => {
@@ -118,12 +118,12 @@ app.get("/api/get-candidates?:pageSizepage", (req, res) => {
   let page
   let pageCount
   let total = 0
-  page = req.query?.page ? parseInt(req.query.page) : 1
-  pageSize = req.query?.pageSize ? parseInt(req.query.pageSize) : 3
+  page = parseInt(req.query?.page ? req.query.page : 1)
+  pageSize = parseInt(req.query?.pageSize ? req.query.pageSize : 3)
   let sql = `SELECT count(*) as count from candidates`
-  let sql2 = `SELECT * from candidates order by id desc limit ${pageSize} offset ${
-    page === 1 ? 1 : page * pageSize + 1
-  }`
+  let sql2 = `SELECT * from candidates order by id desc limit ${
+    page === 1 ? 0 : (page - 1) * pageSize
+  },${pageSize}`
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
@@ -185,7 +185,20 @@ app.post("/api/add-score/:userId", (req, res) => {
 
 // get the maximum scores
 app.get("/api/get-max-scores", (req, res) => {
-  let sql = `select *, MAX(average_score) from scores inner join * candidates on id=candidate_id`
+  let sql = `select *, MAX(average_score) as max from scores inner join candidates on candidates.id=scores.candidate_id`
+  try {
+    db.query(sql, (err, data) => {
+      if (err) console.log(err)
+      res.send(data)
+    })
+  } catch (err) {
+    console.log(err)
+  }
+})
+
+// get all scores
+app.get("/api/get-scores", (req, res) => {
+  let sql = `select * from scores  inner join candidates on candidates.id=scores.candidate_id`
   try {
     db.query(sql, (err, data) => {
       if (err) console.log(err)
