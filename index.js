@@ -82,7 +82,7 @@ app.get("/create_scores_table", (req, res) => {
 
 // updating table scores to add average score
 app.get("/update_score_table", (req, res) => {
-  let sql = `alter table scores add column average_score int`
+  let sql = `alter table scores modify column average_score decimal(4,2)`
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
@@ -181,15 +181,30 @@ app.get("/api/get-candidates?:pageSizepage", (req, res) => {
 // add scores
 app.post("/api/add-score/:userId", (req, res) => {
   let { first_round, second_round, third_round } = req.body
-  let average_score = (first_round + second_round + third_round) / 3
+  let average_score = Math.round(
+    (parseInt(first_round) + parseInt(second_round) + parseInt(third_round)) / 3
+  )
   let error = {}
   let userCheck = `select * from scores where candidate_id = '${req.params.userId}'`
-  let sql = `INSERT into scores values (uuid(), '${req.params.userId}', '${first_round}', '${second_round}', '${third_round}', '${average_score}')`
-  let updateScores = `update scores set first_round = '${first_round}', second_round='${second_round}', third_round = '${third_round}', average_score = '${average_score}' where candidate_id = '${req.params.userId}'`
+  let sql = `INSERT into scores values (uuid(), '${
+    req.params.userId
+  }', '${parseInt(first_round)}', '${parseInt(second_round)}', '${parseInt(
+    third_round
+  )}', '${average_score}')`
+  let updateScores = `update scores set first_round = '${parseInt(
+    first_round
+  )}', second_round='${parseInt(second_round)}', third_round = '${parseInt(
+    third_round
+  )}', average_score = '${average_score}' where candidate_id = '${
+    req.params.userId
+  }'`
   try {
-    if (first_round.length === 0) error.first_round = "Please add this value"
-    if (third_round.length === 0) error.third_round = "Please add this value"
-    if (second_round.length === 0) error.second_round = "Please add this value"
+    if (!first_round || first_round?.length === 0)
+      error.first_round = "Please add this value"
+    if (!third_round || third_round?.length === 0)
+      error.third_round = "Please add this value"
+    if (!second_round || second_round?.length === 0)
+      error.second_round = "Please add this value"
     if (Object.keys(error).length > 0) res.send(error)
     db.query(userCheck, (err, result) => {
       if (err) console.log(err)
@@ -198,6 +213,12 @@ app.post("/api/add-score/:userId", (req, res) => {
           if (err) console.log(err)
           res.send({
             msg: "Item created successfully",
+            score: {
+              first_round,
+              second_round,
+              third_round,
+              average_score,
+            },
           })
         })
       }
@@ -205,6 +226,12 @@ app.post("/api/add-score/:userId", (req, res) => {
         if (err) console.log(err)
         res.send({
           msg: "Item updated successfully",
+          score: {
+            first_round,
+            second_round,
+            third_round,
+            average_score,
+          },
         })
       })
     })
