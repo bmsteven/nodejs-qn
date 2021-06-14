@@ -69,7 +69,7 @@ app.get("/update-candidates-table", (req, res) => {
 // run this route only once to create test scores table
 app.get("/create_scores_table", (req, res) => {
   let sql =
-    "create table scores(id int auto_increment Primary key not null, candidate_id int not null, first_round int, second_round int, third_round int, average_score int, FOREIGN KEY (candidate_id) REFERENCES candidates(id))"
+    "create table scores(id int auto_increment Primary key not null, candidate_id int not null, first_round decimal(4,2), second_round decimal(4,2), third_round decimal(4,2), average_score decimal(4,2), FOREIGN KEY (candidate_id) REFERENCES candidates(id))"
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
