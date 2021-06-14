@@ -82,7 +82,7 @@ app.get("/create_scores_table", (req, res) => {
 
 // updating table scores to add average score
 app.get("/update_score_table", (req, res) => {
-  let sql = `alter table scores modify column average_score decimal(4,2)`
+  let sql = `alter table scores modify column third_round decimal(4,2)`
   try {
     db.query(sql, (err, results) => {
       if (err) console.log(err)
@@ -181,19 +181,24 @@ app.get("/api/get-candidates?:pageSizepage", (req, res) => {
 // add scores
 app.post("/api/add-score/:userId", (req, res) => {
   let { first_round, second_round, third_round } = req.body
-  let average_score = Math.round(
-    (parseInt(first_round) + parseInt(second_round) + parseInt(third_round)) / 3
-  )
+  let average_score =
+    Math.round(
+      ((parseFloat(first_round) +
+        parseFloat(second_round) +
+        parseFloat(third_round)) /
+        3) *
+        100
+    ) / 100
   let error = {}
   let userCheck = `select * from scores where candidate_id = '${req.params.userId}'`
   let sql = `INSERT into scores values (uuid(), '${
     req.params.userId
-  }', '${parseInt(first_round)}', '${parseInt(second_round)}', '${parseInt(
-    third_round
-  )}', '${average_score}')`
-  let updateScores = `update scores set first_round = '${parseInt(
+  }', '${parseFloat(first_round)}', '${parseFloat(
+    second_round
+  )}', '${parseFloat(third_round)}', '${average_score}')`
+  let updateScores = `update scores set first_round = '${parseFloat(
     first_round
-  )}', second_round='${parseInt(second_round)}', third_round = '${parseInt(
+  )}', second_round='${parseFloat(second_round)}', third_round = '${parseFloat(
     third_round
   )}', average_score = '${average_score}' where candidate_id = '${
     req.params.userId
@@ -242,7 +247,7 @@ app.post("/api/add-score/:userId", (req, res) => {
 
 // get the maximum scores
 app.get("/api/get-max-scores", (req, res) => {
-  let sql = `select *, MAX(average_score) as max from scores inner join candidates on candidates.id=scores.candidate_id`
+  let sql = `select MAX(average_score) as max, first_round, second_round, third_round, average_score, candidate_id, candidates.id, name, email from scores inner join candidates on candidates.id=scores.candidate_id where average_score=(select MAX(average_score) from scores)`
   try {
     db.query(sql, (err, data) => {
       if (err) console.log(err)
